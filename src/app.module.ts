@@ -5,6 +5,8 @@ import { z } from 'zod/v4';
 import { createErrorMap } from 'zod-validation-error/v4';
 import { ConfigModule } from '@nestjs/config';
 import { EnvSchema } from './env';
+import { AuthModule } from './auth/auth.module';
+import { AuthenticateController } from './controllers/authenticate.controller';
 
 z.config({
   customError: createErrorMap({
@@ -18,8 +20,9 @@ z.config({
       validate: (env) => EnvSchema.parse(env),
       isGlobal: true,
     }),
+    AuthModule,
   ],
-  controllers: [CreateAccountController],
+  controllers: [CreateAccountController, AuthenticateController],
   providers: [PrismaService],
 })
 export class AppModule {}

@@ -1,6 +1,6 @@
 @baseUrl = http://localhost:8080
 
-# @name create_account
+### @name create_account
 
 POST {{baseUrl}}/accounts
 Content-Type: application/json
@@ -11,7 +11,7 @@ Content-Type: application/json
   "password": "123456"
 }
 
-# @name authenticate
+### @name authenticate
 
 POST {{baseUrl}}/sessions
 Content-Type: application/json
