@@ -3,6 +3,8 @@ import { PrismaService } from './prisma/prisma.service';
 import { CreateAccountController } from './controllers/create-account.controller';
 import { z } from 'zod/v4';
 import { createErrorMap } from 'zod-validation-error/v4';
+import { ConfigModule } from '@nestjs/config';
+import { EnvSchema } from './env';
 
 z.config({
   customError: createErrorMap({
@@ -11,7 +13,12 @@ z.config({
 });
 
 @Module({
-  imports: [],
+  imports: [
+    ConfigModule.forRoot({
+      validate: (env) => EnvSchema.parse(env),
+      isGlobal: true,
+    }),
+  ],
   controllers: [CreateAccountController],
   providers: [PrismaService],
 })
