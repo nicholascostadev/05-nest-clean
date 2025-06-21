@@ -2,9 +2,10 @@ import { Module } from '@nestjs/common';
 import { z } from 'zod/v4';
 import { createErrorMap } from 'zod-validation-error/v4';
 import { ConfigModule } from '@nestjs/config';
-import { EnvSchema } from './env';
+import { EnvSchema } from './env/env';
 import { AuthModule } from './auth/auth.module';
 import { HttpModule } from './http/http.module';
+import { EnvModule } from './env/env.module';
 
 z.config({
   customError: createErrorMap({
@@ -20,6 +21,7 @@ z.config({
     }),
     AuthModule,
     HttpModule,
+    EnvModule,
   ],
 })
 export class AppModule {}
