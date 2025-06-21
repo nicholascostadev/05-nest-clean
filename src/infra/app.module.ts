@@ -4,7 +4,6 @@ import { createErrorMap } from 'zod-validation-error/v4';
 import { ConfigModule } from '@nestjs/config';
 import { EnvSchema } from './env';
 import { AuthModule } from './auth/auth.module';
-import { JwtStrategy } from './auth/jwt.strategy';
 import { HttpModule } from './http/http.module';
 
 z.config({
@@ -22,6 +21,5 @@ z.config({
     AuthModule,
     HttpModule,
   ],
-  providers: [JwtStrategy],
 })
 export class AppModule {}

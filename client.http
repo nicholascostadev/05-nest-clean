@@ -40,6 +40,5 @@ Authorization: Bearer {{accessToken}}
 ###
 
 # @name fetch_recent_questions
-
 GET {{baseUrl}}/questions
 Authorization: Bearer {{accessToken}}
