@@ -1,8 +1,9 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '@/infra/auth/jwt-auth.guard';
 import { ZodValidationPipe } from '@/infra/http/pipes/zod-validation-pipe';
-import { PrismaService } from '@/infra/database/prisma/prisma.service';
 import z from 'zod/v4';
+import { FetchRecentQuestionsUseCase } from '@/domain/forum/application/use-cases/fetch-recent-questions';
+import { QuestionPresenter } from '../presenters/question-presenter';
 
 const PageQueryParamSchema = z.coerce.number().min(1).default(1);
 
@@ -13,20 +14,18 @@ type PageQueryParam = z.infer<typeof PageQueryParamSchema>;
 @Controller('/questions')
 @UseGuards(JwtAuthGuard)
 export class FetchRecentQuestionsController {
-  constructor(private prismaService: PrismaService) {}
+  constructor(private fetchRecentQuestions: FetchRecentQuestionsUseCase) {}
 
   @Get()
   async handle(@Query('page', QueryValidationPipe) page: PageQueryParam) {
-    const perPage = 20;
+    const result = await this.fetchRecentQuestions.execute({ page });
 
-    const questions = await this.prismaService.question.findMany({
-      take: perPage,
-      skip: (page - 1) * perPage,
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    if (result.isLeft()) {
+      throw new Error();
+    }
 
-    return { questions };
+    const questions = result.value.questions;
+
+    return { questions: questions.map(QuestionPresenter.toHTTP) };
   }
 }
