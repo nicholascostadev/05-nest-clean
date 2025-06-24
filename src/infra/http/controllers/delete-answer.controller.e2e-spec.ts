@@ -8,17 +8,20 @@ import { JwtService } from '@nestjs/jwt';
 import { DatabaseModule } from '@/infra/database/database.module';
 import { StudentFactory } from 'test/factories/make-student';
 import { PrismaService } from '@/infra/database/prisma/prisma.service';
+import { QuestionFactory } from 'test/factories/make-question';
+import { AnswerFactory } from 'test/factories/make-answer';
 
-describe('Create question (e2e)', () => {
+describe('Delete answer (e2e)', () => {
   let app: NestExpressApplication;
   let jwt: JwtService;
   let prisma: PrismaService;
+  let questionFactory: QuestionFactory;
   let studentFactory: StudentFactory;
-
+  let answerFactory: AnswerFactory;
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule, DatabaseModule],
-      providers: [StudentFactory],
+      providers: [StudentFactory, QuestionFactory, AnswerFactory],
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -26,30 +29,38 @@ describe('Create question (e2e)', () => {
     jwt = moduleRef.get(JwtService);
     studentFactory = moduleRef.get(StudentFactory);
     prisma = moduleRef.get(PrismaService);
+    questionFactory = moduleRef.get(QuestionFactory);
+    answerFactory = moduleRef.get(AnswerFactory);
     await app.init();
   });
 
-  test('[POST] /questions', async () => {
+  test('[DELETE] /answers/:id', async () => {
     const user = await studentFactory.makePrismaStudent();
 
     const accessToken = jwt.sign({ sub: user.id.toString() });
 
-    const response = await request(app.getHttpServer())
-      .post('/questions')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({
-        title: 'New question',
-        content: 'Question content',
-      });
-
-    expect(response.statusCode).toBe(HttpStatus.CREATED);
-
-    const questionOnDatabase = await prisma.question.findFirst({
-      where: {
-        title: 'New question',
-      },
+    const question = await questionFactory.makePrismaQuestion({
+      authorId: user.id,
     });
 
-    expect(questionOnDatabase).toBeTruthy();
+    const answer = await answerFactory.makePrismaAnswer({
+      questionId: question.id,
+      authorId: user.id,
+    });
+
+    const answerId = answer.id.toString();
+
+    const response = await request(app.getHttpServer())
+      .delete(`/answers/${answerId}`)
+      .set('Authorization', `Bearer ${accessToken}`);
+
+    expect(response.statusCode).toBe(HttpStatus.NO_CONTENT);
+
+    const answerOnDatabase = await prisma.answer.findUnique({
+      where: {
+        id: answerId,
+      },
+    });
+    expect(answerOnDatabase).toBeNull();
   });
 });

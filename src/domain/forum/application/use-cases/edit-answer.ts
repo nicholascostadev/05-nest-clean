@@ -5,8 +5,9 @@ import { ResourceNotFoundException } from '@/core/exceptions/resource-not-found-
 import type { Answer } from '../../enterprise/entities/answer';
 import { AnswerAttachment } from '../../enterprise/entities/answer-attachment';
 import { AnswerAttachmentList } from '../../enterprise/entities/answer-attachment-list';
-import type { AnswerAttachmentsRepository } from '../repositories/answer-attachments-repository';
-import type { AnswersRepository } from '../repositories/answers-repsitory';
+import { AnswerAttachmentsRepository } from '../repositories/answer-attachments-repository';
+import { AnswersRepository } from '../repositories/answers-repsitory';
+import { Injectable } from '@nestjs/common';
 
 interface EditAnswerUseCaseRequest {
   authorId: string;
@@ -22,6 +23,7 @@ type EditAnswerUseCaseResponse = Either<
   }
 >;
 
+@Injectable()
 export class EditAnswerUseCase {
   constructor(
     private answersRepository: AnswersRepository,

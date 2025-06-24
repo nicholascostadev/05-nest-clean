@@ -8,18 +8,19 @@ import { JwtService } from '@nestjs/jwt';
 import { DatabaseModule } from '@/infra/database/database.module';
 import { StudentFactory } from 'test/factories/make-student';
 import { QuestionFactory } from 'test/factories/make-question';
-import { Slug } from '@/domain/forum/enterprise/entities/value-objects/slug';
+import { AnswerFactory } from 'test/factories/make-answer';
 
-describe('Fetch recent questions (e2e)', () => {
+describe('Fetch question answers (e2e)', () => {
   let app: NestExpressApplication;
   let studentFactory: StudentFactory;
   let questionFactory: QuestionFactory;
+  let answerFactory: AnswerFactory;
   let jwt: JwtService;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule, DatabaseModule],
-      providers: [StudentFactory, QuestionFactory],
+      providers: [StudentFactory, QuestionFactory, AnswerFactory],
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -27,49 +28,56 @@ describe('Fetch recent questions (e2e)', () => {
     jwt = moduleRef.get(JwtService);
     studentFactory = moduleRef.get(StudentFactory);
     questionFactory = moduleRef.get(QuestionFactory);
+    answerFactory = moduleRef.get(AnswerFactory);
 
     await app.init();
   });
 
-  test('[GET] /questions', async () => {
+  test('[GET] /questions/:questionId/answers', async () => {
     const user = await studentFactory.makePrismaStudent();
 
     const accessToken = jwt.sign({ sub: user.id.toString() });
 
+    const question = await questionFactory.makePrismaQuestion({
+      authorId: user.id,
+    });
+
     await Promise.all([
-      questionFactory.makePrismaQuestion({
-        title: 'Question 01',
-        slug: Slug.create('question-01'),
+      answerFactory.makePrismaAnswer({
+        questionId: question.id,
+        content: 'Answer 01',
         authorId: user.id,
       }),
-      questionFactory.makePrismaQuestion({
-        title: 'Question 02',
-        slug: Slug.create('question-02'),
+      answerFactory.makePrismaAnswer({
+        questionId: question.id,
+        content: 'Answer 02',
         authorId: user.id,
       }),
-      questionFactory.makePrismaQuestion({
-        title: 'Question 03',
-        slug: Slug.create('question-03'),
+      answerFactory.makePrismaAnswer({
+        questionId: question.id,
+        content: 'Answer 03',
         authorId: user.id,
       }),
     ]);
 
+    const questionId = question.id.toString();
+
     const response = await request(app.getHttpServer())
-      .get('/questions')
+      .get(`/questions/${questionId}/answers`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
     expect(response.statusCode).toBe(HttpStatus.OK);
     expect(response.body).toEqual({
-      questions: expect.arrayContaining([
+      answers: expect.arrayContaining([
         expect.objectContaining({
-          title: 'Question 01',
+          content: 'Answer 01',
         }),
         expect.objectContaining({
-          title: 'Question 02',
+          content: 'Answer 02',
         }),
         expect.objectContaining({
-          title: 'Question 03',
+          content: 'Answer 03',
         }),
       ]),
     });

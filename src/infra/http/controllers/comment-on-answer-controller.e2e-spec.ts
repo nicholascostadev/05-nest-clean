@@ -7,71 +7,64 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { JwtService } from '@nestjs/jwt';
 import { DatabaseModule } from '@/infra/database/database.module';
 import { StudentFactory } from 'test/factories/make-student';
+import { PrismaService } from '@/infra/database/prisma/prisma.service';
+import { AnswerFactory } from 'test/factories/make-answer';
 import { QuestionFactory } from 'test/factories/make-question';
-import { Slug } from '@/domain/forum/enterprise/entities/value-objects/slug';
 
-describe('Fetch recent questions (e2e)', () => {
+describe('Comment on answer (e2e)', () => {
   let app: NestExpressApplication;
-  let studentFactory: StudentFactory;
-  let questionFactory: QuestionFactory;
   let jwt: JwtService;
-
+  let prisma: PrismaService;
+  let studentFactory: StudentFactory;
+  let answerFactory: AnswerFactory;
+  let questionFactory: QuestionFactory;
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule, DatabaseModule],
-      providers: [StudentFactory, QuestionFactory],
+      providers: [StudentFactory, QuestionFactory, AnswerFactory],
     }).compile();
 
     app = moduleRef.createNestApplication();
 
     jwt = moduleRef.get(JwtService);
     studentFactory = moduleRef.get(StudentFactory);
+    prisma = moduleRef.get(PrismaService);
+    answerFactory = moduleRef.get(AnswerFactory);
     questionFactory = moduleRef.get(QuestionFactory);
-
     await app.init();
   });
 
-  test('[GET] /questions', async () => {
+  test('[POST] /answers/:answerId/comments', async () => {
     const user = await studentFactory.makePrismaStudent();
 
     const accessToken = jwt.sign({ sub: user.id.toString() });
 
-    await Promise.all([
-      questionFactory.makePrismaQuestion({
-        title: 'Question 01',
-        slug: Slug.create('question-01'),
-        authorId: user.id,
-      }),
-      questionFactory.makePrismaQuestion({
-        title: 'Question 02',
-        slug: Slug.create('question-02'),
-        authorId: user.id,
-      }),
-      questionFactory.makePrismaQuestion({
-        title: 'Question 03',
-        slug: Slug.create('question-03'),
-        authorId: user.id,
-      }),
-    ]);
+    const question = await questionFactory.makePrismaQuestion({
+      authorId: user.id,
+    });
+
+    const answer = await answerFactory.makePrismaAnswer({
+      questionId: question.id,
+      authorId: user.id,
+    });
+
+    const answerId = answer.id.toString();
 
     const response = await request(app.getHttpServer())
-      .get('/questions')
+      .post(`/answers/${answerId}/comments`)
       .set('Authorization', `Bearer ${accessToken}`)
-      .send();
+      .send({
+        content: 'New comment',
+      });
 
-    expect(response.statusCode).toBe(HttpStatus.OK);
-    expect(response.body).toEqual({
-      questions: expect.arrayContaining([
-        expect.objectContaining({
-          title: 'Question 01',
-        }),
-        expect.objectContaining({
-          title: 'Question 02',
-        }),
-        expect.objectContaining({
-          title: 'Question 03',
-        }),
-      ]),
+    expect(response.statusCode).toBe(HttpStatus.CREATED);
+
+    const answerCommentOnDatabase = await prisma.comment.findFirst({
+      where: {
+        content: 'New comment',
+      },
     });
+
+    expect(answerCommentOnDatabase).toBeTruthy();
   });
 });

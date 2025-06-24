@@ -2,12 +2,12 @@ import { makeQuestion } from 'test/factories/make-question';
 import { InMemoryQuestionAttachmentsRepository } from 'test/repositories/in-memory-question-attachments-repository';
 import { InMemoryQuestionCommentsRepository } from 'test/repositories/in-memory-question-comments-repository';
 import { InMemoryQuestionsRepository } from 'test/repositories/in-memory-questions-repository';
-import { CommentOnQuestionCase } from './comment-on-question';
+import { CommentOnQuestionUseCase } from './comment-on-question';
 
 let inMemoryQuestionAttachmentsRepository: InMemoryQuestionAttachmentsRepository;
 let inMemoryQuestionsRepository: InMemoryQuestionsRepository;
 let inMemoryQuestionCommentsRepository: InMemoryQuestionCommentsRepository;
-let sut: CommentOnQuestionCase;
+let sut: CommentOnQuestionUseCase;
 
 describe('Comment on Question', () => {
   beforeEach(() => {
@@ -18,7 +18,7 @@ describe('Comment on Question', () => {
     );
     inMemoryQuestionCommentsRepository =
       new InMemoryQuestionCommentsRepository();
-    sut = new CommentOnQuestionCase(
+    sut = new CommentOnQuestionUseCase(
       inMemoryQuestionsRepository,
       inMemoryQuestionCommentsRepository,
     );

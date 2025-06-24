@@ -2,23 +2,25 @@ import { type Either, left, right } from '@/core/either';
 import { UniqueEntityId } from '@/core/entities/unique-entity-id';
 import { ResourceNotFoundException } from '@/core/exceptions/resource-not-found-exception';
 import { AnswerComment } from '../../enterprise/entities/answer-comment';
-import type { AnswerCommentsRepository } from '../repositories/answer-comments-repository';
-import type { AnswersRepository } from '../repositories/answers-repsitory';
+import { AnswerCommentsRepository } from '../repositories/answer-comments-repository';
+import { AnswersRepository } from '../repositories/answers-repsitory';
+import { Injectable } from '@nestjs/common';
 
-interface CommentOnAnswerCaseRequest {
+interface CommentOnAnswerUseCaseRequest {
   authorId: string;
   answerId: string;
   content: string;
 }
 
-type CommentOnAnswerCaseResponse = Either<
+type CommentOnAnswerUseCaseResponse = Either<
   ResourceNotFoundException,
   {
     answerComment: AnswerComment;
   }
 >;
 
-export class CommentOnAnswerCase {
+@Injectable()
+export class CommentOnAnswerUseCase {
   constructor(
     private answersRepository: AnswersRepository,
     private answerCommentsRepository: AnswerCommentsRepository,
@@ -28,7 +30,7 @@ export class CommentOnAnswerCase {
     authorId,
     answerId,
     content,
-  }: CommentOnAnswerCaseRequest): Promise<CommentOnAnswerCaseResponse> {
+  }: CommentOnAnswerUseCaseRequest): Promise<CommentOnAnswerUseCaseResponse> {
     const answer = await this.answersRepository.findById(answerId);
 
     if (!answer) {
