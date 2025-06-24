@@ -18,6 +18,7 @@ z.config({
     ConfigModule.forRoot({
       validate: (env) => EnvSchema.parse(env),
       isGlobal: true,
+      envFilePath: ['.env.local'],
     }),
     AuthModule,
     HttpModule,
