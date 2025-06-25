@@ -23,13 +23,14 @@ export class CreateQuestionController {
     @Body(new ZodValidationPipe(CreateQuestionBodySchema))
     body: CreateQuestionBody,
   ) {
-    const { title, content } = CreateQuestionBodySchema.parse(body);
+    const { title, content, attachments } =
+      CreateQuestionBodySchema.parse(body);
 
     const result = await this.createQuestion.execute({
       title,
       content,
       authorId: user.sub,
-      attachmentsIds: body.attachments,
+      attachmentsIds: attachments,
     });
 
     if (result.isLeft()) {

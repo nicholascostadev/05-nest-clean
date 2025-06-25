@@ -15,6 +15,7 @@ import { EditQuestionUseCase } from '@/domain/forum/application/use-cases/edit-q
 const EditQuestionBodySchema = z.object({
   title: z.string(),
   content: z.string(),
+  attachments: z.array(z.uuid()).default([]),
 });
 
 type EditQuestionBody = z.infer<typeof EditQuestionBodySchema>;
@@ -32,14 +33,14 @@ export class EditQuestionController {
     @Param('id')
     questionId: string,
   ) {
-    const { title, content } = EditQuestionBodySchema.parse(body);
+    const { title, content, attachments } = EditQuestionBodySchema.parse(body);
 
     const result = await this.editQuestion.execute({
       questionId,
       title,
       content,
       authorId: user.sub,
-      attachmentsIds: [],
+      attachmentsIds: attachments,
     });
 
     if (result.isLeft()) {
