@@ -13,6 +13,7 @@ import { AnswerQuestionUseCase } from '@/domain/forum/application/use-cases/answ
 
 const AnswerQuestionBodySchema = z.object({
   content: z.string(),
+  attachments: z.array(z.uuid()),
 });
 
 type AnswerQuestionBody = z.infer<typeof AnswerQuestionBodySchema>;
@@ -28,13 +29,13 @@ export class AnswerQuestionController {
     body: AnswerQuestionBody,
     @Param('questionId') questionId: string,
   ) {
-    const { content } = AnswerQuestionBodySchema.parse(body);
+    const { content, attachments } = AnswerQuestionBodySchema.parse(body);
 
     const result = await this.answerQuestion.execute({
       questionId,
       content,
       authorId: user.sub,
-      attachmentsIds: [],
+      attachmentsIds: attachments,
     });
 
     if (result.isLeft()) {
