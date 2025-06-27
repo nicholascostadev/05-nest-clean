@@ -9,11 +9,15 @@ import { waitFor } from 'test/utils/wait-for';
 import type { MockInstance } from 'vitest/dist/index.js';
 import { SendNotificationUseCase } from '../use-cases/send-notification';
 import { OnAnswerCreated } from './on-answer-created';
+import { InMemoryStudentsRepository } from 'test/repositories/in-memory-students-repository';
+import { InMemoryAttachmentsRepository } from 'test/repositories/in-memory-attachments-repository';
 
 let inMemoryQuestionAttachmentsRepository: InMemoryQuestionAttachmentsRepository;
 let inMemoryQuestionsRepository: InMemoryQuestionsRepository;
 let inMemoryAnswerAttachmentsRepository: InMemoryAnswerAttachmentsRepository;
 let inMemoryAnswersRepository: InMemoryAnswersRepository;
+let inMemoryStudentsRepository: InMemoryStudentsRepository;
+let inMemoryAttachmentsRepository: InMemoryAttachmentsRepository;
 let inMemoryNotificationsRepository: InMemoryNotificationsRepository;
 let sut: SendNotificationUseCase;
 
@@ -27,8 +31,12 @@ describe('On Answer Created', () => {
       new InMemoryAnswerAttachmentsRepository();
     inMemoryQuestionAttachmentsRepository =
       new InMemoryQuestionAttachmentsRepository();
+    inMemoryStudentsRepository = new InMemoryStudentsRepository();
+    inMemoryAttachmentsRepository = new InMemoryAttachmentsRepository();
     inMemoryQuestionsRepository = new InMemoryQuestionsRepository(
       inMemoryQuestionAttachmentsRepository,
+      inMemoryStudentsRepository,
+      inMemoryAttachmentsRepository,
     );
     inMemoryAnswersRepository = new InMemoryAnswersRepository(
       inMemoryAnswerAttachmentsRepository,
@@ -46,8 +54,8 @@ describe('On Answer Created', () => {
     const answer = makeAnswer({
       questionId: question.id,
     });
-    inMemoryQuestionsRepository.create(question);
-    inMemoryAnswersRepository.create(answer);
+    inMemoryQuestionsRepository.items.push(question);
+    inMemoryAnswersRepository.items.push(answer);
 
     await waitFor(() => {
       expect(sendNotificationExecuteSpy).toHaveBeenCalled();

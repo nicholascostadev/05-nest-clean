@@ -9,11 +9,15 @@ import { waitFor } from 'test/utils/wait-for';
 import type { MockInstance } from 'vitest/dist/index.js';
 import { SendNotificationUseCase } from '../use-cases/send-notification';
 import { OnQuestionBestAnswerChosen } from './on-question-best-answer-chosen';
+import { InMemoryStudentsRepository } from 'test/repositories/in-memory-students-repository';
+import { InMemoryAttachmentsRepository } from 'test/repositories/in-memory-attachments-repository';
 
 let inMemoryQuestionAttachmentsRepository: InMemoryQuestionAttachmentsRepository;
 let inMemoryQuestionsRepository: InMemoryQuestionsRepository;
 let inMemoryAnswerAttachmentsRepository: InMemoryAnswerAttachmentsRepository;
 let inMemoryAnswersRepository: InMemoryAnswersRepository;
+let inMemoryStudentsRepository: InMemoryStudentsRepository;
+let inMemoryAttachmentsRepository: InMemoryAttachmentsRepository;
 let inMemoryNotificationsRepository: InMemoryNotificationsRepository;
 let sut: SendNotificationUseCase;
 
@@ -27,8 +31,12 @@ describe('On Question Best Answer Chosen', () => {
       new InMemoryAnswerAttachmentsRepository();
     inMemoryQuestionAttachmentsRepository =
       new InMemoryQuestionAttachmentsRepository();
+    inMemoryStudentsRepository = new InMemoryStudentsRepository();
+    inMemoryAttachmentsRepository = new InMemoryAttachmentsRepository();
     inMemoryQuestionsRepository = new InMemoryQuestionsRepository(
       inMemoryQuestionAttachmentsRepository,
+      inMemoryStudentsRepository,
+      inMemoryAttachmentsRepository,
     );
     inMemoryAnswersRepository = new InMemoryAnswersRepository(
       inMemoryAnswerAttachmentsRepository,
@@ -47,12 +55,12 @@ describe('On Question Best Answer Chosen', () => {
       questionId: question.id,
     });
 
-    inMemoryQuestionsRepository.create(question);
-    inMemoryAnswersRepository.create(answer);
+    inMemoryQuestionsRepository.items.push(question);
+    inMemoryAnswersRepository.items.push(answer);
 
     question.bestAnswerId = answer.id;
 
-    inMemoryQuestionsRepository.save(question);
+    inMemoryQuestionsRepository.items.push(question);
 
     await waitFor(() => {
       expect(sendNotificationExecuteSpy).toHaveBeenCalled();
