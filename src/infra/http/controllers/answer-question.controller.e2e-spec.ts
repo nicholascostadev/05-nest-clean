@@ -10,6 +10,7 @@ import { StudentFactory } from 'test/factories/make-student';
 import { PrismaService } from '@/infra/database/prisma/prisma.service';
 import { QuestionFactory } from 'test/factories/make-question';
 import { AttachmentFactory } from 'test/factories/make-attachment';
+import { DomainEvents } from '@/core/events/domain-events';
 
 describe('Answer question (e2e)', () => {
   let app: NestExpressApplication;
@@ -32,6 +33,7 @@ describe('Answer question (e2e)', () => {
     prisma = moduleRef.get(PrismaService);
     questionFactory = moduleRef.get(QuestionFactory);
     attachmentFactory = moduleRef.get(AttachmentFactory);
+    DomainEvents.shouldRun = true;
     await app.init();
   });
 

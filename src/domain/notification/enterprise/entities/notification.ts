@@ -7,7 +7,7 @@ export interface NotificationProps {
   content: string;
   recipientId: UniqueEntityId;
   createdAt: Date;
-  readAt?: Date;
+  readAt?: Date | null;
 }
 
 type CreateNotificationProps = Optional<NotificationProps, 'createdAt'>;

@@ -6,6 +6,7 @@ import { EnvSchema } from './env/env';
 import { AuthModule } from './auth/auth.module';
 import { HttpModule } from './http/http.module';
 import { EnvModule } from './env/env.module';
+import { EventsModule } from './events/events.module';
 
 z.config({
   customError: createErrorMap({
@@ -18,11 +19,11 @@ z.config({
     ConfigModule.forRoot({
       validate: (env) => EnvSchema.parse(env),
       isGlobal: true,
-      envFilePath: ['.env.local'],
     }),
     AuthModule,
     HttpModule,
     EnvModule,
+    EventsModule,
   ],
 })
 export class AppModule {}
